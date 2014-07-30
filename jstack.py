@@ -397,7 +397,7 @@ def main():
         elif o in ("-t"):
                 threshold = int(a)
         elif o in ("-i"):
-                interval = a
+                interval = float(a)
         elif o in ("-j"):
                 jid = a
         elif o in ("-s"):
@@ -423,7 +423,7 @@ def main():
         tot = JStack.sum(tot, jstack, state, sock)
         JStack.print_summary_trace(tot, limit=limit, threshold=threshold)
 
-        time.sleep(1)
+        time.sleep(interval)
 
 if __name__ == '__main__':
     exit(main())
