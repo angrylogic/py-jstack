@@ -413,7 +413,7 @@ def main():
 
     while True:
         try:
-            p = Popen(["jstack6, "-l", jid], stdout=PIPE, stderr=PIPE)
+            p = Popen(["jstack6", "-l", jid], stdout=PIPE, stderr=PIPE)
             s_jstack_out, stderr = p.communicate()
             jstack = JStack(s_jstack_out)
 
