@@ -412,18 +412,21 @@ def main():
     tot = dict()
 
     while True:
-        p = Popen(["jstack", "-l", jid], stdout=PIPE, stderr=PIPE)
-        s_jstack_out, stderr = p.communicate()
-        jstack = JStack(s_jstack_out)
+        try:
+            p = Popen(["jstack", "-l", jid], stdout=PIPE, stderr=PIPE)
+            s_jstack_out, stderr = p.communicate()
+            jstack = JStack(s_jstack_out)
 
-        if not interval:
-            jstack.print_summary(limit=limit, threshold=threshold)
+            if not interval:
+                break
+
+            tot = JStack.sum(tot, jstack, state, sock)
+            time.sleep(interval)
+            
+        except KeyboardInterrupt:
             break
-
-        tot = JStack.sum(tot, jstack, state, sock)
-        JStack.print_summary_trace(tot, limit=limit, threshold=threshold)
-
-        time.sleep(interval)
+        
+    JStack.print_summary_trace(tot, limit=limit, threshold=threshold)
 
 if __name__ == '__main__':
     exit(main())
