@@ -15,6 +15,7 @@ import re
 import sys
 import getopt
 import time
+from argparse import ArgumentParser
 from subprocess import Popen, PIPE
 from StringIO import StringIO
 
@@ -352,83 +353,42 @@ class TestJStack(object):
         assert threads_first
         assert len(threads_first) < len(threads_tot)
 
-
-#
-# The Program
-#
-def usage():
-    print "usage: jstack [-l limit] [-t threshold] [-j java_pid] [-s state] [-v] [-h]"
-    print ""
-    print "\t parse jstack output giving some statistics"
-    print "\t number of threads, thread waiting and running"
-    print "\t waiting channels"
-    print "\t -s state of the process to filter: %s" % [
-        x for x in JStack.STATES]
-    print "\t -j pid of the jvm to trace"
-    print "\t -i interval in seconds between each check"
-    print "\t -l number of methods to report"
-    print "\t -n thread name"
-
-    exit(2)
-
-
 def main():
     global verbose
     print "running main"
 
-    (argc, argv) = (len(sys.argv), sys.argv)
-    (limit, threshold, interval, state, jid, sock) = (0, 0, 0, None,
-                                                      None, None)
-    try:
-            opts, args = getopt.getopt(argv[1:], "hvi:j:l:n:s:t:", ["help"])
-    except getopt.GetoptError, err:
-            # print help information and exit:
-            print str(
-                err)  # will print something like "option -a not recognized"
-            usage()
-            sys.exit(2)
-    for o, a in opts:
-        if o == "-v":
-                verbose = True
-        elif o in ("-h", "--help"):
-                usage()
-        elif o in ("-l"):
-                limit = int(a)
-        elif o in ("-t"):
-                threshold = int(a)
-        elif o in ("-i"):
-                interval = float(a)
-        elif o in ("-j"):
-                jid = a
-        elif o in ("-s"):
-                state = a
-        elif o in ("-n"):
-                sock = a
-        else:
-                assert False, "unhandled option"
+    parser = ArgumentParser()
+    parser.add_argument("-l", "--limit", type=int, help="Number of methods to report", default=0)
+    parser.add_argument("-t", "--threshold", type=int, help="Threshold of minimum method calls", default=0)
+    parser.add_argument("-s", "--state", choices=JStack.STATES, help="State of threads to filter", default=None)
+    parser.add_argument("-i", "--interval", type=float, help="Interval in seconds between each check", default=None)
+    parser.add_argument("-n", "--name", help="Thread name", default=None)
+    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
+    parser.add_argument("java_pid", help="PID of java process to trace")
+    args = parser.parse_args()
 
-    assert jid, usage()
+    verbose = args.verbose
 
     tot = dict()
 
     while True:
         try:
-            p = Popen(["jstack6", "-l", jid], stdout=PIPE, stderr=PIPE)
+            p = Popen(["jstack6", "-l", args.java_pid], stdout=PIPE, stderr=PIPE)
             s_jstack_out, stderr = p.communicate()
             jstack = JStack(s_jstack_out)
 
-            if not interval:
+            if not args.interval:
                 break
             sys.stdout.write(".")
             sys.stdout.flush()
 
-            tot = JStack.sum(tot, jstack, state, sock)
-            time.sleep(interval)
+            tot = JStack.sum(tot, jstack, args.state, args.name)
+            time.sleep(args.interval)
             
         except KeyboardInterrupt:
             break
         
-    JStack.print_summary_trace(tot, limit=limit, threshold=threshold)
+    JStack.print_summary_trace(tot, limit=args.limit, threshold=args.threshold)
 
 if __name__ == '__main__':
     exit(main())
