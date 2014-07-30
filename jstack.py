@@ -413,12 +413,14 @@ def main():
 
     while True:
         try:
-            p = Popen(["jstack", "-l", jid], stdout=PIPE, stderr=PIPE)
+            p = Popen(["jstack6, "-l", jid], stdout=PIPE, stderr=PIPE)
             s_jstack_out, stderr = p.communicate()
             jstack = JStack(s_jstack_out)
 
             if not interval:
                 break
+            sys.stdout.write(".")
+            sys.stdout.flush()
 
             tot = JStack.sum(tot, jstack, state, sock)
             time.sleep(interval)
