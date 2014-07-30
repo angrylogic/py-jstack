@@ -6,8 +6,11 @@
 #
 # Author: Roberto Polli <rpolli@babel.it>
 #
-from nose import main as testmain
-from nose import SkipTest
+try:
+    from nose import main as testmain
+    from nose import SkipTest
+except ImportError:
+    pass
 import re
 import sys
 import getopt
